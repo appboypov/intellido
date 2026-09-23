@@ -14,6 +14,9 @@ class TodoPanelViewModel(private val service: TodoPanelViewService, repository: 
 
     fun toggle(list: String, line: Int) = service.run(TodoPanelViewService.TOGGLE, mapOf("list" to list, "line" to line.toString()))
 
+    /** Asks for new text for the todo on [line] of [list], with its current text filled in. */
+    fun edit(list: String, line: Int) = service.run(TodoPanelViewService.EDIT, mapOf("list" to list, "line" to line.toString()))
+
     fun open(list: String, line: Int) = service.run(TodoPanelViewService.OPEN, mapOf("list" to list, "line" to line.toString()))
 
     fun refresh() = service.run(TodoPanelViewService.REFRESH)

@@ -33,9 +33,10 @@ class TodoPanelViewService(private val project: Project) {
     private val handlers: Map<String, (Map<String, String>) -> Any?> = mapOf(
         ADD to ::add,
         TOGGLE to { args -> repository.change { it.toggle(list(args), line(args)) } },
+        EDIT to ::edit,
         OPEN to ::open,
         CREATE_LIST to ::createList,
-        CLEANUP to { _ -> repository.cleanup().let { mapOf("removed" to it.removedTodos, "stamped" to it.stampedTodos, "deletedLists" to it.deletedLists) } },
+        CLEANUP to { _ -> repository.cleanup().let { mapOf("removed" to it.removedTodos, "deletedLists" to it.deletedLists) } },
         SCAN to { _ -> TriggerCaptureService.getInstance(project).scanProject(); null },
         REFRESH to { _ -> repository.reload(); null },
         READ to { _ -> repository.read().map(::readout) },
@@ -107,6 +108,25 @@ class TodoPanelViewService(private val project: Project) {
         return repository.change { it.createList(name) }
     }
 
+    /** Replaces a todo's text; without `text`, asks for it with the current text filled in. */
+    private fun edit(args: Map<String, String>): Any? {
+        val list = list(args)
+        val line = line(args)
+        val text = args["text"] ?: run {
+            val todo = repository.store().read(list).todos.firstOrNull { it.line == line }
+                ?: throw TodoActionException("Line ${line + 1} of $list is not a todo")
+            Messages.showInputDialog(
+                project,
+                IntelliDoBundle.message("prompt.edit.message"),
+                IntelliDoBundle.message("prompt.edit.title"),
+                null,
+                todo.text,
+                null,
+            )?.trim()?.ifEmpty { null }
+        } ?: return null
+        return repository.change { it.edit(list, line, text) }
+    }
+
     /** Opens the file a todo is about, at its caught line; a todo without a file opens its list at the todo. */
     private fun open(args: Map<String, String>): Any {
         val list = list(args)
@@ -130,7 +150,7 @@ class TodoPanelViewService(private val project: Project) {
         "folder" to list.folder,
         "title" to list.title,
         "todos" to list.todos.map {
-            mapOf("line" to it.line, "done" to it.done, "file" to it.file, "sourceLine" to it.sourceLine, "text" to it.text, "completedAt" to it.completedAt?.toString())
+            mapOf("line" to it.line, "done" to it.done, "file" to it.file, "sourceLine" to it.sourceLine, "text" to it.text)
         },
     )
 
@@ -155,6 +175,7 @@ class TodoPanelViewService(private val project: Project) {
     companion object {
         const val ADD = "intellido.todo.add"
         const val TOGGLE = "intellido.todo.toggle"
+        const val EDIT = "intellido.todo.edit"
         const val OPEN = "intellido.todo.open"
         const val CREATE_LIST = "intellido.list.create"
         const val CLEANUP = "intellido.cleanup.run"

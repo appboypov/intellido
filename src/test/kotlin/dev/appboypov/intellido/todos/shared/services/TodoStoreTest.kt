@@ -9,8 +9,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
-import java.time.Duration
-import java.time.LocalDateTime
 import kotlin.io.path.exists
 import kotlin.io.path.readText
 import kotlin.io.path.writeText
@@ -19,8 +17,7 @@ class TodoStoreTest {
     @TempDir
     lateinit var dir: Path
 
-    private var clock = LocalDateTime.of(2026, 9, 23, 14, 5)
-    private val store by lazy { TodoStore(dir.resolve("todos"), "shop") { clock } }
+    private val store by lazy { TodoStore(dir.resolve("todos"), "shop") }
 
     @Test
     fun `a folder and its files share one list with frontmatter`() {
@@ -57,42 +54,43 @@ class TodoStoreTest {
     }
 
     @Test
-    fun `completing stamps the line and reopening removes the stamp`() {
-        store.add(TodoTarget("src", null), "ship it")
-        assertTrue(store.toggle("src.md", 4))
-        assertEquals("- [x] ship it ✅ 2026-09-23T14:05", dir.resolve("todos/src.md").readText().lines()[4])
-        assertEquals(LocalDateTime.of(2026, 9, 23, 14, 5), store.read("src.md").todos.single().completedAt)
-        assertFalse(store.toggle("src.md", 4))
-        assertEquals("- [ ] ship it", dir.resolve("todos/src.md").readText().lines()[4])
-        assertThrows<TodoActionException> { store.toggle("src.md", 0) }
+    fun `completing and reopening only change the checkbox`() {
+        store.add(TodoTarget("src/auth", "Login.kt"), "fix redirect", sourceLine = 42)
+        assertTrue(store.toggle("src/auth.md", 4))
+        assertEquals("- [x] [[Login.kt]]:42 fix redirect", dir.resolve("todos/src/auth.md").readText().lines()[4])
+        assertFalse(store.toggle("src/auth.md", 4))
+        assertEquals("- [ ] [[Login.kt]]:42 fix redirect", dir.resolve("todos/src/auth.md").readText().lines()[4])
+        assertThrows<TodoActionException> { store.toggle("src/auth.md", 0) }
     }
 
     @Test
-    fun `cleanup removes old completed todos, keeps recent ones and stamps unstamped ones`() {
+    fun `cleanup removes every completed todo and keeps open ones`() {
         val file = dir.resolve("todos/src.md")
-        store.add(TodoTarget("src", null), "old")
-        store.add(TodoTarget("src", null), "recent")
+        store.add(TodoTarget("src", null), "done")
         store.add(TodoTarget("src", null), "open")
-        file.writeText(
-            file.readText()
-                .replace("- [ ] old", "- [x] old ✅ 2026-09-22T13:00")
-                .replace("- [ ] recent", "- [x] recent"),
-        )
-        val result = store.cleanup(Duration.ofHours(24))
+        store.toggle("src.md", 4)
+        val result = store.cleanup()
         assertEquals(1, result.removedTodos)
-        assertEquals(1, result.stampedTodos)
-        assertEquals("---\nfolder: src\n---\n\n- [x] recent ✅ 2026-09-23T14:05\n- [ ] open\n", file.readText())
+        assertEquals("---\nfolder: src\n---\n\n- [ ] open\n", file.readText())
     }
 
     @Test
     fun `cleanup deletes lists left without todos and their empty folders`() {
         store.add(TodoTarget("src/auth", null), "done")
         store.toggle("src/auth.md", 4)
-        clock = clock.plusDays(2)
-        val result = store.cleanup(Duration.ofHours(24))
+        val result = store.cleanup()
         assertEquals(listOf("src/auth.md"), result.deletedLists)
         assertFalse(dir.resolve("todos/src").exists())
         assertTrue(dir.resolve("todos").exists())
+    }
+
+    @Test
+    fun `editing replaces the text and keeps the box and file link`() {
+        store.add(TodoTarget("src/auth", "Login.kt"), "fix redirect", sourceLine = 42)
+        store.toggle("src/auth.md", 4)
+        store.edit("src/auth.md", 4, "  fix the login redirect ")
+        assertEquals("- [x] [[Login.kt]]:42 fix the login redirect", dir.resolve("todos/src/auth.md").readText().lines()[4])
+        assertThrows<TodoActionException> { store.edit("src/auth.md", 4, " ") }
     }
 
     @Test
@@ -102,8 +100,8 @@ class TodoStoreTest {
         file.writeText("# Notes\n\nSome context.\n- [ ] first\n")
         store.addToList("notes.md", "second")
         store.toggle("notes.md", 3)
-        store.cleanup(Duration.ofHours(24))
-        assertEquals("# Notes\n\nSome context.\n- [x] first ✅ 2026-09-23T14:05\n- [ ] second\n", file.readText())
+        store.cleanup()
+        assertEquals("# Notes\n\nSome context.\n- [ ] second\n", file.readText())
     }
 
     @Test

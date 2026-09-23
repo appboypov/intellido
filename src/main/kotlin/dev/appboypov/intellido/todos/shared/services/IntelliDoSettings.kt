@@ -44,7 +44,7 @@ class IntelliDoSettings : SimplePersistentStateComponent<IntelliDoSettings.Value
             state.cleanupHours = value.coerceAtLeast(1)
         }
 
-    val cleanupAge: Duration get() = Duration.ofHours(cleanupHours.toLong())
+    val cleanupInterval: Duration get() = Duration.ofHours(cleanupHours.toLong())
 
     var detection: TriggerDetection
         get() = state.detection

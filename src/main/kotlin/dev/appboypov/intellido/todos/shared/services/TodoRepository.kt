@@ -60,12 +60,15 @@ class TodoRepository(private val project: Project, private val scope: CoroutineS
         })
     }
 
-    /** Reads the lists and cleans up now, then every hour. */
+    /** Cleans up now when the interval has passed since the last run, then checks again every hour. */
     fun start() {
         cleanupJob?.cancel()
         cleanupJob = scope.launch {
             while (true) {
-                withContext(Dispatchers.EDT) { runCatching { cleanup() }.onFailure { log.error("scheduled cleanup failed", it) } }
+                val elapsed = System.currentTimeMillis() - TodoCleanupState.getInstance(project).lastRunMillis
+                if (elapsed >= IntelliDoSettings.getInstance(project).cleanupInterval.toMillis()) {
+                    withContext(Dispatchers.EDT) { runCatching { cleanup() }.onFailure { log.error("scheduled cleanup failed", it) } }
+                }
                 delay(1.hours)
             }
         }
@@ -90,11 +93,11 @@ class TodoRepository(private val project: Project, private val scope: CoroutineS
         }
     }
 
-    /** Removes completed todos older than the configured age and deletes emptied lists. EDT. */
+    /** Removes every completed todo and deletes emptied lists. EDT. */
     fun cleanup(): CleanupResult {
-        val age = IntelliDoSettings.getInstance(project).cleanupAge
-        return change { it.cleanup(age) }.also {
-            log.info("cleanup", "removed" to it.removedTodos, "stamped" to it.stampedTodos, "deleted" to it.deletedLists.size)
+        TodoCleanupState.getInstance(project).lastRunMillis = System.currentTimeMillis()
+        return change { it.cleanup() }.also {
+            log.info("cleanup", "removed" to it.removedTodos, "deleted" to it.deletedLists.size)
         }
     }
 

@@ -21,10 +21,10 @@ folder: src/auth
 - [ ] split the service
 - [ ] [[Login.kt]] rename login()
 - [ ] [[Login.kt]]:42 fix redirect
-- [x] [[Login.kt]] drop legacy flag ✅ 2026-09-23T14:05
+- [x] [[Login.kt]] drop legacy flag
 ```
 
-A todo line matches `^\s*- \[( |x|X)\] (\[\[name\]\](:line)? )?text( ✅ stamp)?$`. Other lines are kept as they are. A standalone list has no `folder` key. A folder list is found by its path, `<todos>/<folder>.md`; when a file there exists without the matching `folder`, adding to that folder fails with a message instead of mixing lists.
+A todo line matches `^\s*- \[( |x|X)\] (\[\[name\]\](:line)? )?text$`. Other lines are kept as they are. A standalone list has no `folder` key. A folder list is found by its path, `<todos>/<folder>.md`; when a file there exists without the matching `folder`, adding to that folder fails with a message instead of mixing lists.
 
 ### D2. A plain-file store behind a project repository
 `TodoStore` reads and writes list files with `java.nio` and knows nothing of the IDE, so its behaviour is unit tested on temporary folders. `TodoRepository`, a project service, wraps it: before a change it saves unsaved editor documents under the todos folder, after a change it refreshes those files in the VFS, and it publishes the current lists as a `StateFlow<List<TodoList>>` for the panel.
@@ -41,7 +41,7 @@ A todo line matches `^\s*- \[( |x|X)\] (\[\[name\]\](:line)? )?text( ✅ stamp)?
 A scan reads the file's document text, collects its triggers, cuts them in one `WriteCommandAction` (undoable, named "Capture Todos") and saves the document, then adds the todos through the repository. Files are filtered by `TriggerFilter` (todos folder, `.git`, binary file type, the ignore list, then the whitelist), and, when git-ignored files are skipped, by one `git check-ignore --stdin` call per batch. Git answers from the work tree as it is, where the IDE's changelist only knows ignored files after its own status update, which misses files at project open and files written a moment ago. No git or no work tree means nothing counts as ignored. Ignore and whitelist entries are project-relative paths; an entry with `*`, `?` or `[` is a glob matched with `java.nio` glob syntax, any other entry matches that path and everything under it.
 
 ### D5. Cleanup runs from a project service on a schedule
-At project open, and every hour after that, cleanup runs on a pooled thread; `intellido.cleanup.run` runs it on demand. The age is a per-project setting in hours.
+At project open, and every hour after that, the repository checks whether the cleanup interval has passed since the last run and, when it has, removes every completed todo; `intellido.cleanup.run` runs it on demand. The interval is a per-project setting in hours. The time of the last run lives in the workspace file (`TodoCleanupState`), so list lines carry no dates and the time stays out of version control.
 
 ### D6. Named actions live in one registry
 `TodoPanelViewService` holds the registry from action name to handler, like Turbo Herdr's `HerdrPanelViewService`. The panel, the IDE actions in `plugin.xml` and the dispatcher `POST /api/intellido?action=<name>&project=<name>&<arg>=<value>` reach the same handler:
@@ -51,6 +51,7 @@ At project open, and every hour after that, cleanup runs on a pooled thread; `in
 | `intellido.todo.add` | `text`, one of `path` (project-relative file or folder) or `list` (list file path relative to the todos folder) | adds a todo |
 | `intellido.todo.addToSelection` | none | prompts and adds to the selected files and folders |
 | `intellido.todo.toggle` | `list`, `line` | completes or reopens the todo on that line of the list file |
+| `intellido.todo.edit` | `list`, `line`, optional `text` | replaces the todo's text; without `text` it asks with the current text filled in |
 | `intellido.todo.open` | `list`, `line` | opens the todo's file |
 | `intellido.list.create` | `name` | creates a standalone list |
 | `intellido.list.new` | none | prompts for a name, then creates |
@@ -62,7 +63,7 @@ At project open, and every hour after that, cleanup runs on a pooled thread; `in
 | `intellido.settings.open` | none | opens the settings page |
 
 ### D7. Settings are per project
-`IntelliDoSettings` is a project `SimplePersistentStateComponent` stored in `.idea/intellido.xml`: todos folder, cleanup age in hours, detection mode, poll seconds, three markers with their switches, skip git-ignored, ignore list, whitelist. The settings page lives under Settings | Tools | IntelliDo; changing detection settings restarts detection.
+`IntelliDoSettings` is a project `SimplePersistentStateComponent` stored in `.idea/intellido.xml`: todos folder, cleanup interval in hours, detection mode, poll seconds, three markers with their switches, skip git-ignored, ignore list, whitelist. The settings page lives under Settings | Tools | IntelliDo; changing detection settings restarts detection.
 
 ## Risks / Trade-offs
 

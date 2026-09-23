@@ -5,9 +5,9 @@ IntelliDo keeps a project's todos inside the project, as plain Markdown checkbox
 ## What it does
 
 - **Lists per folder.** Right-click any file or folder in the project view and choose **Add Todo…**. A folder and its files share one list, which mirrors the folder inside the todos folder. For example, `src/auth/Login.kt` goes to `todos/src/auth.md` and the project root goes to `todos/<project-name>.md`. Lists that belong to no folder can be created from the panel.
-- **The IntelliDo panel.** A docked tool window with quick add, a checkbox per todo and double-click to open the todo's file at its line.
+- **The IntelliDo panel.** A docked tool window with quick add, a checkbox per todo, right-click Edit Todo and double-click to open the todo's file at its line.
 - **Trigger capture.** Write `// fix redirect #todo;` anywhere in a project file. IntelliDo cuts the trigger out of the file and records `[[Login.kt]]:5 fix redirect` in the folder's list. The cut is one undoable command.
-- **Cleanup.** Completed todos older than the configured age (24 hours by default) are removed when the project opens, every hour and on demand. Lists left without todos are deleted.
+- **Cleanup.** Every completed todo is removed once per configured interval (24 hours by default) and on demand. Lists left without todos are deleted.
 
 A list file looks like this:
 
@@ -17,7 +17,7 @@ folder: src/auth
 ---
 
 - [ ] [[Login.kt]]:5 fix redirect
-- [x] [[Login.kt]] add logout ✅ 2026-05-20T14:03
+- [x] [[Login.kt]] add logout
 ```
 
 ## Settings
@@ -27,7 +27,7 @@ Settings | Tools | IntelliDo, stored per project in `.idea/intellido.xml`:
 | Setting | Default |
 |---|---|
 | Todos folder | `todos` |
-| Remove completed todos after | 24 hours |
+| Remove completed todos every | 24 hours |
 | Trigger markers: starts with / contains / ends with | `//` / `#todo` / `;`, each can be switched off |
 | Detection | Watch: capture when a file is saved or changed on disk. Poll: scan the project every N seconds (30 by default) |
 | Skip git-ignored files | On |
@@ -42,7 +42,7 @@ curl -X POST 'http://127.0.0.1:63342/api/intellido?project=<name>&action=intelli
 curl -X POST 'http://127.0.0.1:63342/api/intellido?project=<name>&action=intellido.todo.add&path=src/auth&text=add%20logout'
 ```
 
-The actions are `intellido.todo.add`, `intellido.todo.toggle`, `intellido.todo.open`, `intellido.list.create`, `intellido.cleanup.run`, `intellido.triggers.scan`, `intellido.panel.refresh`, `intellido.panel.read`, `intellido.panel.show`, `intellido.panel.capture` and `intellido.settings.open`.
+The actions are `intellido.todo.add`, `intellido.todo.toggle`, `intellido.todo.edit`, `intellido.todo.open`, `intellido.list.create`, `intellido.cleanup.run`, `intellido.triggers.scan`, `intellido.panel.refresh`, `intellido.panel.read`, `intellido.panel.show`, `intellido.panel.capture` and `intellido.settings.open`.
 
 ## Development
 

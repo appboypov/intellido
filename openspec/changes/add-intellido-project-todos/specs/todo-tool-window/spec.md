@@ -22,10 +22,17 @@ Ticking a todo's checkbox SHALL complete it, and unticking SHALL reopen it, per 
 
 #### Scenario: Brian ticks a todo
 - **WHEN** Brian ticks `split the service` in the panel
-- **THEN** its line in `todos/src/auth.md` is completed with a stamp
+- **THEN** its line in `todos/src/auth.md` reads `- [x] split the service`
+
+### Requirement: Editing from the panel
+Right-clicking a todo SHALL offer Edit Todo, which asks for new text with the current text filled in and edits the todo per the todo-lists requirement.
+
+#### Scenario: Brian edits a todo
+- **WHEN** Brian right-clicks `split the service`, chooses Edit Todo and enters `split the auth service`
+- **THEN** its line in `todos/src/auth.md` reads `- [ ] split the auth service`
 
 ### Requirement: Opening a todo
-Double-clicking a todo SHALL open the file it names, at its caught line when it has one. A todo without a file SHALL open its list file at the todo's line.
+Double-clicking anywhere on a todo's row SHALL open the file it names, at its caught line when it has one. A todo without a file SHALL open its list file at the todo's line.
 
 #### Scenario: Captured todo
 - **GIVEN** the todo `[[Login.kt]]:42 fix redirect` in list `src/auth`
@@ -36,7 +43,7 @@ Double-clicking a todo SHALL open the file it names, at its caught line when it 
 The panel header SHALL offer New List, Run Cleanup, Refresh and Settings.
 
 #### Scenario: Brian runs cleanup
-- **GIVEN** a todo completed 3 days ago
+- **GIVEN** a completed todo
 - **WHEN** Brian chooses Run Cleanup
 - **THEN** the todo is gone from the list file and the panel
 

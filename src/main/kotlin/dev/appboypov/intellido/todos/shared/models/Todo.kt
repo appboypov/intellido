@@ -1,7 +1,5 @@
 package dev.appboypov.intellido.todos.shared.models
 
-import java.time.LocalDateTime
-
 /**
  * One `- [ ]` line of a list file.
  *
@@ -14,5 +12,4 @@ data class Todo(
     val file: String?,
     val sourceLine: Int?,
     val text: String,
-    val completedAt: LocalDateTime?,
 )

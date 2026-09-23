@@ -42,28 +42,36 @@ The user SHALL be able to create a list by name that belongs to no folder. Its f
 - **THEN** `todos/Ideas.md` holds `- [ ] dark mode` and has no `folder` frontmatter
 
 ### Requirement: Completing and reopening
-Completing a todo SHALL tick its box and append ` ✅ <local date and time as YYYY-MM-DDTHH:MM>`. Reopening SHALL clear the box and remove that stamp. Lines that are not todos SHALL stay untouched.
+Completing a todo SHALL tick its box and reopening SHALL clear it; nothing else on the line SHALL change. Lines that are not todos SHALL stay untouched.
 
 #### Scenario: Brian completes a todo
-- **GIVEN** `todos/src/auth.md` holds `- [ ] split the service`
-- **WHEN** Brian completes it at 2026-09-23 14:05
-- **THEN** the line reads `- [x] split the service ✅ 2026-09-23T14:05`
+- **GIVEN** `todos/src/auth.md` holds `- [ ] [[Login.kt]]:42 fix redirect`
+- **WHEN** Brian completes it
+- **THEN** the line reads `- [x] [[Login.kt]]:42 fix redirect`
 
-### Requirement: Cleanup removes old completed todos
-Cleanup SHALL remove every completed todo whose completion is older than the configured age, SHALL stamp completed todos that carry no completion time with the current time, and SHALL delete a list file that holds no todo afterwards, together with folders under the todos folder left empty. The age SHALL be configurable in hours per project and SHALL default to 24. Cleanup SHALL run when the project opens, every hour while it is open, and when the user asks for it.
+### Requirement: Editing a todo
+The user SHALL be able to replace a todo's text. Its box and file link SHALL stay. Empty text SHALL be refused.
 
-#### Scenario: Old completed todo is removed
-- **GIVEN** a todo completed 25 hours ago and an open todo in `todos/src/auth.md`
-- **WHEN** cleanup runs with the default age
+#### Scenario: Brian rewords a todo
+- **GIVEN** `todos/src/auth.md` holds `- [ ] [[Login.kt]]:42 fix redirect`
+- **WHEN** Brian edits it to `fix the login redirect`
+- **THEN** the line reads `- [ ] [[Login.kt]]:42 fix the login redirect`
+
+### Requirement: Cleanup removes completed todos on an interval
+Cleanup SHALL remove every completed todo and SHALL delete a list file that holds no todo afterwards, together with folders under the todos folder left empty. Cleanup SHALL run once the configured interval has passed since its last run, checked when the project opens and every hour while it is open, and when the user asks for it. The interval SHALL be configurable in hours per project and SHALL default to 24. The time of the last run SHALL be kept outside the list files.
+
+#### Scenario: Completed todo is removed
+- **GIVEN** a completed todo and an open todo in `todos/src/auth.md`
+- **WHEN** cleanup runs
 - **THEN** the completed todo is gone and the open todo remains
 
 #### Scenario: Empty list is deleted
-- **GIVEN** `todos/src/auth.md` holds only a todo completed 2 days ago
+- **GIVEN** `todos/src/auth.md` holds only a completed todo
 - **WHEN** cleanup runs
 - **THEN** `todos/src/auth.md` no longer exists
 - **AND** `todos/src` is deleted when it is empty
 
-#### Scenario: Box ticked by hand
-- **GIVEN** Brian ticked `- [x] split the service` in the editor without a stamp
-- **WHEN** cleanup runs
-- **THEN** the line gains the current completion stamp and stays
+#### Scenario: Interval not yet passed
+- **GIVEN** cleanup ran 3 hours ago and the interval is 24 hours
+- **WHEN** the hourly check runs
+- **THEN** no todo is removed

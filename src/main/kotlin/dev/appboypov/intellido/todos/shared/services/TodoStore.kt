@@ -6,8 +6,6 @@ import dev.appboypov.intellido.todos.shared.models.TodoList
 import dev.appboypov.intellido.todos.shared.models.TodoTarget
 import java.nio.file.Files
 import java.nio.file.Path
-import java.time.Duration
-import java.time.LocalDateTime
 import kotlin.io.path.createDirectories
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.exists
@@ -21,13 +19,9 @@ import kotlin.io.path.writeText
 
 /**
  * Reads and changes the list files under [root], the todos folder (design D2). Knows nothing of the IDE.
- * [projectName] names the project root folder's list; [now] is the clock for completion stamps.
+ * [projectName] names the project root folder's list.
  */
-class TodoStore(
-    val root: Path,
-    private val projectName: String,
-    private val now: () -> LocalDateTime = LocalDateTime::now,
-) {
+class TodoStore(val root: Path, private val projectName: String) {
     /** Every list file under [root], ordered by path. */
     fun lists(): List<TodoList> {
         if (!root.isDirectory()) return emptyList()
@@ -90,33 +84,30 @@ class TodoStore(
         val lines = lines(path).toMutableList()
         val todo = lines.getOrNull(line)?.let { TodoMarkdown.todo(it, line) }
             ?: throw TodoActionException("Line ${line + 1} of $relativePath is not a todo; the list changed")
-        lines[line] = if (todo.done) TodoMarkdown.reopen(lines[line]) else TodoMarkdown.complete(lines[line], now())
+        lines[line] = TodoMarkdown.checked(lines[line], !todo.done)
         write(path, lines)
         return !todo.done
     }
 
-    /**
-     * Removes completed todos older than [maxAge], stamps completed todos without a time,
-     * deletes list files left without todos and empty folders under [root].
-     */
-    fun cleanup(maxAge: Duration): CleanupResult {
-        val cutoff = now().minus(maxAge)
+    /** Replaces the text of the todo on [line] of [relativePath] with [text], keeping its box and file link. */
+    fun edit(relativePath: String, line: Int, text: String) {
+        val path = pathOf(relativePath)
+        val lines = lines(path).toMutableList()
+        lines.getOrNull(line)?.let { TodoMarkdown.todo(it, line) }
+            ?: throw TodoActionException("Line ${line + 1} of $relativePath is not a todo; the list changed")
+        lines[line] = TodoMarkdown.withText(lines[line], requireText(text))
+        write(path, lines)
+    }
+
+    /** Removes every completed todo, deletes list files left without todos and empty folders under [root]. */
+    fun cleanup(): CleanupResult {
         var removed = 0
-        var stamped = 0
         val deleted = mutableListOf<String>()
         for (list in lists()) {
             val path = pathOf(list.relativePath)
             val lines = lines(path)
-            val kept = mutableListOf<String>()
-            for ((index, line) in lines.withIndex()) {
-                val todo = TodoMarkdown.todo(line, index)
-                when {
-                    todo == null || !todo.done -> kept += line
-                    todo.completedAt == null -> kept += TodoMarkdown.complete(line, now()).also { stamped++ }
-                    todo.completedAt.isBefore(cutoff) -> removed++
-                    else -> kept += line
-                }
-            }
+            val kept = lines.filterIndexed { index, line -> TodoMarkdown.todo(line, index)?.done != true }
+            removed += lines.size - kept.size
             if (TodoMarkdown.todos(kept).isEmpty()) {
                 path.deleteIfExists()
                 deleted += list.relativePath
@@ -125,7 +116,7 @@ class TodoStore(
             }
         }
         deleteEmptyFolders(root)
-        return CleanupResult(removed, stamped, deleted)
+        return CleanupResult(removed, deleted)
     }
 
     /** The absolute path of the list at [relativePath]. Rejects paths that leave [root]. */

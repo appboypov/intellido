@@ -2,10 +2,13 @@ package dev.appboypov.intellido.todos.shared.views.todopanel
 
 import com.intellij.icons.AllIcons
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.actionSystem.ActionManager
+import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.application.EDT
 import com.intellij.openapi.application.ModalityState
 import com.intellij.openapi.application.asContextElement
 import com.intellij.openapi.fileTypes.FileTypeManager
+import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages
 import com.intellij.openapi.util.Disposer
@@ -13,6 +16,7 @@ import com.intellij.ui.CheckboxTree
 import com.intellij.ui.CheckboxTreeBase
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.DoubleClickListener
+import com.intellij.ui.PopupHandler
 import com.intellij.ui.ScrollPaneFactory
 import com.intellij.ui.SimpleTextAttributes
 import com.intellij.ui.components.JBTextField
@@ -28,6 +32,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.awt.BorderLayout
+import java.awt.Component
 import java.awt.event.MouseEvent
 import java.awt.image.BufferedImage
 import java.nio.file.Path
@@ -89,11 +94,21 @@ class TodoPanelView(private val project: Project, private val viewModel: TodoPan
         })
         object : DoubleClickListener() {
             override fun onDoubleClick(event: MouseEvent): Boolean {
-                val todo = tree.getPathForLocation(event.x, event.y)?.let(::nodeOf) as? TodoNode ?: return false
+                val todo = todoAt(event.x, event.y) ?: return false
                 act { viewModel.open(todo.list.relativePath, todo.todo.line) }
                 return true
             }
         }.installOn(tree)
+        tree.addMouseListener(object : PopupHandler() {
+            override fun invokePopup(component: Component, x: Int, y: Int) {
+                val todo = todoAt(x, y) ?: return
+                tree.selectionPath = tree.getPathForRow(tree.getClosestRowForLocation(x, y))
+                val group = DefaultActionGroup(
+                    DumbAwareAction.create(IntelliDoBundle.message("panel.menu.edit")) { act { viewModel.edit(todo.list.relativePath, todo.todo.line) } },
+                )
+                ActionManager.getInstance().createActionPopupMenu(POPUP_PLACE, group).component.show(component, x, y)
+            }
+        })
         viewModel.attach(this)
         Disposer.register(parent) {
             scope.cancel()
@@ -113,6 +128,14 @@ class TodoPanelView(private val project: Project, private val viewModel: TodoPan
             g.dispose()
         }
         ImageIO.write(image, "png", path.toFile())
+    }
+
+    /** The todo on the row at [x], [y], anywhere across the row's width, or null. */
+    private fun todoAt(x: Int, y: Int): TodoNode? {
+        val row = tree.getClosestRowForLocation(x, y)
+        val bounds = tree.getRowBounds(row) ?: return null
+        if (y < bounds.y || y >= bounds.y + bounds.height) return null
+        return tree.getPathForRow(row)?.let(::nodeOf) as? TodoNode
     }
 
     private fun render(lists: List<TodoList>) {
@@ -173,6 +196,10 @@ class TodoPanelView(private val project: Project, private val viewModel: TodoPan
     }
 
     private class ListNode(val list: TodoList)
+
+    private companion object {
+        const val POPUP_PLACE = "IntelliDoPanelPopup"
+    }
 
     private class TodoNode(val list: TodoList, val todo: Todo)
 

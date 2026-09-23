@@ -5,9 +5,9 @@
 
 ## 2. Todo lists (D1, D2, D5)
 
-- [x] 2.1 Implement the list format: parse and write list files, todo lines, frontmatter and completion stamps. Verify: unit tests round-trip the design D1 example and keep non-todo lines.
-- [x] 2.2 Implement `TodoStore`: add to a folder, a file or a standalone list; toggle; create lists; cleanup with age, stamping, empty-file and empty-folder deletion. Verify: unit tests on temporary folders cover every scenario in the todo-lists spec.
-- [x] 2.3 Implement `TodoRepository` with document saving, VFS refresh, a `StateFlow` of lists and scheduled cleanup. Verify: sandbox IDE shows the lists and hourly cleanup is scheduled.
+- [x] 2.1 Implement the list format: parse and write list files, todo lines and frontmatter. Verify: unit tests round-trip the design D1 example and keep non-todo lines.
+- [x] 2.2 Implement `TodoStore`: add to a folder, a file or a standalone list; toggle; create lists; edit; cleanup of completed todos, empty-file and empty-folder deletion. Verify: unit tests on temporary folders cover every scenario in the todo-lists spec.
+- [x] 2.3 Implement `TodoRepository` with document saving, VFS refresh, a `StateFlow` of lists and scheduled cleanup. Verify: sandbox IDE shows the lists and cleanup runs once per interval.
 
 ## 3. Trigger capture (D3, D4)
 

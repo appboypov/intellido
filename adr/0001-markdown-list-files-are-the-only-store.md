@@ -12,7 +12,7 @@ IntelliDo keeps project todos. Brian wants them in plain Markdown inside the rep
 
 ## Decision
 
-The list files under the todos folder are the only store. There is no index, cache or database. Each list is one Markdown file, one todo per `- [ ]` or `- [x]` line; the folder a list belongs to is its `folder` frontmatter; a file's todo starts with `[[file name]]`, with `:line` when it was captured; a completion carries ` ✅ YYYY-MM-DDTHH:MM`. Non-todo lines are preserved.
+The list files under the todos folder are the only store. There is no index, cache or database. Each list is one Markdown file, one todo per `- [ ]` or `- [x]` line; the folder a list belongs to is its `folder` frontmatter; a file's todo starts with `[[file name]]`, with `:line` when it was captured; completing a todo only ticks its box. Non-todo lines are preserved.
 
 ## Consequences
 

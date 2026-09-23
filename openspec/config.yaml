@@ -9,6 +9,7 @@ context: |
 
 rules:
   proposal:
+    - Pressure-test the intent with the companion grill-me skill before writing.
     - Name the owning intent record path.
   specs:
     - Write requirements and scenarios in Gherkin with the companion gherkin-authoring skill; every requirement carries at least one scenario.

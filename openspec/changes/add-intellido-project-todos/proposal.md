@@ -11,11 +11,10 @@ Brian wants to organise todos inside a project without leaving IntelliJ: attach 
 - The folder mirrors the project: a folder's todos and the todos of the files directly in it share one list, `todos/<folder path>.md`, whose frontmatter names the folder. A file's todo line starts with `[[file name]]`. The project root folder's list is `todos/<project name>.md`. The user can also create standalone lists, such as `Ideas`, that belong to no folder.
 - The project view context menu adds a todo to every selected file and folder. The action has a Keymap entry, so the user can bind a shortcut.
 - A docked `IntelliDo` tool window shows every list and todo, adds todos quickly, completes and reopens them, creates standalone lists, runs cleanup and opens the file a todo is about.
-- Completed todos carry their completion time. Cleanup removes completed todos older than a configurable age (default 24 hours), deletes lists left without todos, runs on its own and on demand.
+- Completing a todo only ticks its box. Cleanup removes every completed todo and deletes lists left without todos; it runs on a configurable interval (default 24 hours) and on demand.
 - Trigger capture: a line in any project file that matches the configured pattern (default start `//`, contains `#todo`, end `;`, each marker switchable) is cut from its file and recorded as a todo, with its line number, in the list of that file's folder. Detection runs on saved-file changes or on a poll interval, the user's choice. The user can ignore folders, whitelist folders and skip git-ignored files (default on).
 
 Assumptions recorded here rather than asked:
-- A completion time is written on the todo line as ` ✅ YYYY-MM-DDTHH:MM`. A line ticked by hand without one receives the current time on the next cleanup, so it ages from then.
 - Watch mode reacts to file contents on disk, the way a file watcher does; IntelliJ writes an edited file on save and on its autosave.
 - A trigger with no text left between its markers is not captured and stays in its file.
 - Only `- [ ]` and `- [x]` lines are todos; every other line in a list file is kept untouched.
