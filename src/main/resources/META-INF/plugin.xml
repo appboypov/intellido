@@ -1,0 +1,55 @@
+<idea-plugin>
+    <id>dev.appboypov.intellido</id>
+    <name>IntelliDo</name>
+    <vendor url="https://github.com/appboypov">De App Specialist</vendor>
+    <description><![CDATA[
+    Organise todos inside your project as plain Markdown checkbox lists.
+    <ul>
+      <li>Add a todo to any file or folder from the project view; a folder and its files share one list in a configurable todos folder.</li>
+      <li>See, add and complete todos in the docked IntelliDo panel; double-click a todo to open its file.</li>
+      <li>Write <code>// fix login #todo;</code> in any file: IntelliDo cuts it out and records it with its line number. Markers, watch or poll detection and folder filters are configurable.</li>
+      <li>Completed todos are cleaned up after a configurable age.</li>
+    </ul>
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+
+    <resource-bundle>messages.IntelliDoBundle</resource-bundle>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow id="IntelliDo" anchor="right" icon="/icons/intellido.svg"
+                    factoryClass="dev.appboypov.intellido.todos.shared.views.todopanel.TodoToolWindowFactory"/>
+        <projectConfigurable parentId="tools" id="dev.appboypov.intellido.settings"
+                             instance="dev.appboypov.intellido.todos.shared.views.todosettings.TodoSettingsPage"
+                             key="settings.displayName"/>
+        <postStartupActivity implementation="dev.appboypov.intellido.todos.shared.services.IntelliDoStartup"/>
+        <httpRequestHandler implementation="dev.appboypov.intellido.todos.shared.apis.IntelliDoActionRestService"/>
+    </extensions>
+
+    <actions>
+        <action id="intellido.todo.addToSelection" class="dev.appboypov.intellido.todos.shared.views.addtodo.AddTodoAction"
+                icon="AllIcons.General.Add">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="NewGroup"/>
+        </action>
+        <action id="intellido.list.create" class="dev.appboypov.intellido.todos.shared.views.todopanel.TodoPanelAction"
+                icon="AllIcons.Actions.AddList"/>
+        <action id="intellido.triggers.scan" class="dev.appboypov.intellido.todos.shared.views.todopanel.TodoPanelAction"
+                icon="AllIcons.Actions.Find"/>
+        <action id="intellido.cleanup.run" class="dev.appboypov.intellido.todos.shared.views.todopanel.TodoPanelAction"
+                icon="AllIcons.Actions.GC"/>
+        <action id="intellido.panel.refresh" class="dev.appboypov.intellido.todos.shared.views.todopanel.TodoPanelAction"
+                icon="AllIcons.Actions.Refresh"/>
+        <action id="intellido.settings.open" class="dev.appboypov.intellido.todos.shared.views.todopanel.TodoPanelAction"
+                icon="AllIcons.General.Settings"/>
+
+        <group id="intellido.panel.header">
+            <reference ref="intellido.list.create"/>
+            <reference ref="intellido.triggers.scan"/>
+            <reference ref="intellido.cleanup.run"/>
+            <reference ref="intellido.panel.refresh"/>
+        </group>
+        <group id="intellido.panel.gear">
+            <reference ref="intellido.settings.open"/>
+        </group>
+    </actions>
+</idea-plugin>

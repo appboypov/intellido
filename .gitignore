@@ -1,0 +1,8 @@
+.gradle/
+.kotlin/
+build/
+.intellijPlatform/
+.idea/
+*.iml
+out/
+.crabbox/

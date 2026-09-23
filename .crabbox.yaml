@@ -1,0 +1,22 @@
+profile: intellido
+sync:
+  delete: true
+  gitSeed: true
+  exclude:
+    - .gradle
+    - .kotlin
+    - .intellijPlatform
+    - build
+run:
+  preflightTools:
+    - git
+    - java
+jobs:
+  check:
+    shell: true
+    command: ./gradlew --no-daemon --console=plain check
+    stop: auto
+  verify:
+    shell: true
+    command: ./gradlew --no-daemon --console=plain verifyPlugin
+    stop: auto

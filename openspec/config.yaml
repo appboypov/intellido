@@ -1,0 +1,20 @@
+schema: intent-driven
+
+context: |
+  intellido: an IntelliJ Platform plugin that keeps project todos as Markdown checkbox lists in a configurable todos folder,
+  shows them in a docked tool window, adds todos to files and folders from the project view, and captures configured comment
+  patterns from project files into those lists.
+  Published on JetBrains Marketplace; targets IntelliJ Platform 2026.1 (build 261) and later. Sister plugin of Turbo Herdr (~/Repos/turbo-herdr), whose structure it follows.
+  Owning intent: /Users/codaveto/Work/intents/intellido-project-todos/intellido-project-todos.md
+
+rules:
+  proposal:
+    - Name the owning intent record path.
+  specs:
+    - Write requirements and scenarios in Gherkin with the companion gherkin-authoring skill; every requirement carries at least one scenario.
+  design:
+    - Draw the architecture with the companion c4-diagrams skill where structure matters.
+  adr:
+    - Follow the companion architectural-decision-records skill; durable decisions are immutable files under adr/.
+  tasks:
+    - Keep every task a checkbox small enough for one session and name the verification that proves it.
