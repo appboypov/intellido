@@ -1,7 +1,7 @@
 ## 1. Project scaffold
 
 - [x] 1.1 Scaffold the Kotlin plugin like Turbo Herdr: plugin id `dev.appboypov.intellido`, name IntelliDo, `sinceBuild = 261`, IntelliJ IDEA 2026.1.2, JVM toolchain 25, logging and bundle helpers. Verify: `./gradlew buildPlugin` produces a zip.
-- [ ] 1.2 Add `.crabbox.yaml`, build and publish workflows and an MIT license. Verify: the build workflow passes on GitHub.
+- [x] 1.2 Add `.crabbox.yaml`, build and publish workflows and an MIT license. Verify: the build workflow passes on GitHub.
 
 ## 2. Todo lists (D1, D2, D5)
 
