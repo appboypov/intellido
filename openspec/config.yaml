@@ -5,12 +5,12 @@ context: |
   shows them in a docked tool window, adds todos to files and folders from the project view, and captures configured comment
   patterns from project files into those lists.
   Published on JetBrains Marketplace; targets IntelliJ Platform 2026.1 (build 261) and later. Sister plugin of Turbo Herdr (~/Repos/turbo-herdr), whose structure it follows.
-  Owning intent: /Users/codaveto/Work/intents/intellido-project-todos/intellido-project-todos.md
+  Owning intent: [IntelliDo: project todos inside IntelliJ](anytype://object?objectId=bafyreia67hs432y766l345skdjmxgzfq6o6juzmsbbsx73grumbnsgncpi) in Brian's Anytype brain.
 
 rules:
   proposal:
     - Pressure-test the intent with the companion grill-me skill before writing.
-    - Name the owning intent record path.
+    - Link the owning Intent object in Anytype.
   specs:
     - Write requirements and scenarios in Gherkin with the companion gherkin-authoring skill; every requirement carries at least one scenario.
   design:
