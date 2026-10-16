@@ -14,9 +14,9 @@ run:
 jobs:
   check:
     shell: true
-    command: ./gradlew --no-daemon --console=plain check
+    command: /work/crabbox/bin/slot bash -c './gradlew --no-daemon --console=plain check'
     stop: auto
   verify:
     shell: true
-    command: ./gradlew --no-daemon --console=plain verifyPlugin
+    command: /work/crabbox/bin/slot bash -c './gradlew --no-daemon --console=plain verifyPlugin'
     stop: auto
